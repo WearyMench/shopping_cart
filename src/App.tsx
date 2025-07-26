@@ -1,9 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTheme } from './ThemeContext';
 // Components
 import Item from "./Item/Item";
@@ -13,11 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Landing from "./pages/Landing";
 import Filters from "./components/Filters";
-import { Drawer, Grid, Box, Container } from "@mui/material";
-import LinearProgress from "@mui/material/LinearProgress";
-import { AddShoppingCartRounded } from "@mui/icons-material";
-import { Badge } from "@mui/material";
-import { Typography } from "@mui/material";
+import { Drawer, Grid, Box, Container, Typography } from "@mui/material";
 import ProductsPagination from "./components/Pagination";
 import Footer from "./components/Footer";
 import ErrorBoundary from './components/ErrorBoundary';
@@ -38,23 +31,7 @@ export type CartItemType = {
 const getProducts = async (): Promise<CartItemType[]> =>
   await (await fetch("https://fakestoreapi.com/products")).json();
 
-const getTheme = (mode: 'light' | 'dark') => createTheme({
-  palette: {
-    mode,
-    primary: {
-      main: mode === 'dark' ? '#90caf9' : '#1976d2',
-    },
-    secondary: {
-      main: mode === 'dark' ? '#f48fb1' : '#dc004e',
-    },
-    background: {
-      default: mode === 'dark' ? '#121212' : '#f5f5f5',
-      paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
-    },
-  },
-});
 
-const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,7 +44,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   if (isLoading) {
-    return null; // or a loading spinner
+    return <LoadingSpinner message="Checking authentication..." />;
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
@@ -77,7 +54,6 @@ const ITEMS_PER_PAGE = 9;
 
 const App = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'light' | 'dark'>('dark');
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([] as CartItemType[]);
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -85,12 +61,12 @@ const App = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, error } = useQuery<CartItemType[]>(
-    "products",
-    getProducts
-  );
+  const { data, isLoading, error } = useQuery<CartItemType[]>({
+    queryKey: ["products"],
+    queryFn: getProducts
+  });
 
-  const theme = useMemo(() => getTheme(mode), [mode]);
+  const { toggleTheme } = useTheme();
 
   const categories = useMemo(() => {
     if (!data) return [];
@@ -130,18 +106,6 @@ const App = () => {
 
   const handleEmptyCart = () => {
     setCartItems([]);
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-  };
-
-  const handlePriceRangeChange = (range: [number, number]) => {
-    setPriceRange(range);
   };
 
   const handleClearFilters = () => {
@@ -184,48 +148,43 @@ const App = () => {
   };
 
   const handleThemeToggle = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    toggleTheme();
   };
-
-  if (isLoading && window.location.pathname === '/products') return <LoadingSpinner message="Loading products..." />;
-  if (error && window.location.pathname === '/products') return (
-    <ErrorBoundary>
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="h5" color="error">
-          Failed to load products
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Please try refreshing the page
-        </Typography>
-      </Box>
-    </ErrorBoundary>
-  );
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Wrapper>
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <Header 
-                cartItemsCount={getTotalItems(cartItems)} 
-                onCartClick={() => setCartOpen(true)}
-                onSearch={setSearchQuery}
-                onLogout={handleLogout}
-                onThemeToggle={handleThemeToggle}
-                isAuthenticated={isAuthenticated}
-              />
-              <Box component="main" sx={{ flex: 1 }}>
-                <Routes>
-                  <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/" element={<Landing />} />
-                  <Route
-                    path="/products"
-                    element={
-                      <PrivateRoute>
-                        <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Wrapper>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Header 
+              cartItemsCount={getTotalItems(cartItems)} 
+              onCartClick={() => setCartOpen(true)}
+              onSearch={setSearchQuery}
+              onLogout={handleLogout}
+              onThemeToggle={handleThemeToggle}
+              isAuthenticated={isAuthenticated}
+            />
+            <Box component="main" sx={{ flex: 1 }}>
+              <Routes>
+                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/" element={<Landing />} />
+                <Route
+                  path="/products"
+                  element={
+                    <PrivateRoute>
+                      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                        {isLoading ? (
+                          <LoadingSpinner message="Loading products..." />
+                        ) : error ? (
+                          <Box sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="h5" color="error">
+                              Failed to load products
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary">
+                              Please try refreshing the page
+                            </Typography>
+                          </Box>
+                        ) : (
                           <Grid container spacing={3}>
                             <Grid item xs={12} md={3}>
                               <Filters
@@ -254,46 +213,34 @@ const App = () => {
                               )}
                             </Grid>
                           </Grid>
-                        </Container>
-                      </PrivateRoute>
-                    }
-                  />
-                </Routes>
-              </Box>
-              <Footer />
+                        )}
+                      </Container>
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
             </Box>
-            <Drawer 
-              anchor="right" 
-              open={cartOpen} 
+            <Footer />
+          </Box>
+          <Drawer 
+            anchor="right" 
+            open={cartOpen} 
+            onClose={() => setCartOpen(false)}
+            PaperProps={{
+              sx: {
+                width: { xs: '100%', sm: 500 }
+              }
+            }}
+          >
+            <Cart
+              cartItems={cartItems}
+              addToCart={handleAddToCart}
+              removeFromCart={handleRemoveFromCart}
               onClose={() => setCartOpen(false)}
-              PaperProps={{
-                sx: {
-                  width: { xs: '100%', sm: 500 }
-                }
-              }}
-              ModalProps={{
-                keepMounted: false,
-                disablePortal: true,
-                disableEnforceFocus: true,
-                disableAutoFocus: true,
-                disableRestoreFocus: true,
-                hideBackdrop: false,
-                BackdropProps: {
-                  invisible: false,
-                }
-              }}
-            >
-              <Cart
-                cartItems={cartItems}
-                addToCart={handleAddToCart}
-                removeFromCart={handleRemoveFromCart}
-                onClose={() => setCartOpen(false)}
-                onEmptyCart={handleEmptyCart}
-              />
-            </Drawer>
-          </Wrapper>
-        </ThemeProvider>
-      </QueryClientProvider>
+              onEmptyCart={handleEmptyCart}
+            />
+          </Drawer>
+        </Wrapper>
     </ErrorBoundary>
   );
 };

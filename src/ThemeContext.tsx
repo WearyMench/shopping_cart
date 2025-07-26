@@ -17,13 +17,19 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const theme = createTheme({
     palette: {
       mode: isDarkMode ? 'dark' : 'light',
+      primary: {
+        main: isDarkMode ? '#90caf9' : '#1976d2',
+      },
+      secondary: {
+        main: isDarkMode ? '#f48fb1' : '#dc004e',
+      },
       background: {
-        default: isDarkMode ? '#121212' : '#ffffff',
+        default: isDarkMode ? '#121212' : '#f5f5f5',
         paper: isDarkMode ? '#1e1e1e' : '#ffffff',
       },
       text: {
