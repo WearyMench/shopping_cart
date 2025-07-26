@@ -1,21 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/shopping_cart/assets/cart-d2309706.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopping cart</title>
+    <script type="module" crossorigin src="/shopping_cart/assets/index-b75d5f48.js"></script>
+    <link rel="modulepreload" crossorigin href="/shopping_cart/assets/vendor-3d41947b.js">
+    <link rel="modulepreload" crossorigin href="/shopping_cart/assets/mui-7cca9987.js">
+    <link rel="modulepreload" crossorigin href="/shopping_cart/assets/query-ddeb9520.js">
+    <link rel="modulepreload" crossorigin href="/shopping_cart/assets/router-fb6416a4.js">
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" href="./assets/cart-d2309706.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shopping cart</title>
-  <script type="module" crossorigin src="./assets/index-4b08def3.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/vendor-3d41947b.js">
-  <link rel="modulepreload" crossorigin href="./assets/mui-7cca9987.js">
-  <link rel="modulepreload" crossorigin href="./assets/query-ddeb9520.js">
-  <link rel="modulepreload" crossorigin href="./assets/router-b79df468.js">
-</head>
-
-<body>
-  <div id="root"></div>
-  
-</body>
-
+  <body>
+    <div id="root"></div>
+    
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      // This script checks to see if a redirect is present in the query string,
+      // converts it back into the correct url and adds it to the
+      // browser's history using window.history.replaceState(...),
+      // which won't cause the browser to attempt to load the new url.
+      // When the single page app is loaded further down in this file,
+      // the correct url will be waiting in the browser's history for
+      // the single page app to route accordingly.
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      })(window.location);
+    </script>
+  </body>
 </html>
